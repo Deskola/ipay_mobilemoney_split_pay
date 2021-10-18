@@ -1,0 +1,98 @@
+<?php
+
+/**
+ * 
+ */
+class WCMp_Settings_Payment_Ipay_MobileMoney 
+{
+	/**
+     * Holds the values to be used in the fields callbacks
+     */
+    private $options;
+    private $tab;
+    private $subsection;
+    private $key_id = '';
+    private $key_secret = '';
+    
+    
+
+
+    /**
+     * Start up
+     */
+    public function __construct($tab, $subsection) {
+        $this->tab = $tab;
+        $this->subsection = $subsection;
+        $this->options = get_option("wcmp_{$this->tab}_{$this->subsection}_settings_name");
+        $this->settings_page_init();
+    }
+
+    /**
+     * Register and add settings
+     */
+    public function settings_page_init() {
+        global $WCMp;
+        $settings_tab_options = array("tab" => "{$this->tab}",
+            "ref" => &$this,
+            "subsection" => "{$this->subsection}",
+            "sections" => array(
+                "wcmp_payment_ipay_payout_settings_section" => array("title" => __('iPay setting', 'wcmp-ipay-checkout-gateway'),
+                    "fields" => array(
+                        "key_id" => array(
+                            'title' => __('Vendor ID', 'wcmp-ipay-checkout-gateway'),
+                            'type' => 'text',
+                            'id' => 'key_id',
+                            'label_for' => 'key_id',
+                            'name' => 'key_id',
+                            'dfvalue' => $this->key_id
+                        ),
+                        "key_secret" => array(
+                            'title' => __('Security Key', 'wcmp-ipay-checkout-gateway'),
+                            'type' => 'password',
+                            'id' => 'key_secret',
+                            'label_for' => 'key_secret',
+                            'name' => 'key_secret',
+                            'dfvalue' => $this->key_secret
+                        ),                  
+                        
+                        "is_split" => array('title' => __('Enable Split Payment', 'wcmp-ipay-checkout-gateway'), 'type' => 'checkbox', 'id' => 'is_split', 'label_for' => 'is_split', 'name' => 'is_split', 'value' => 'Enable'), // Checkbox
+                    ),
+                )
+            ),
+        );
+
+        $WCMp->admin->settings->settings_field_withsubtab_init(
+            apply_filters("settings_{$this->tab}_{$this->subsection}_tab_options", $settings_tab_options)
+        );
+    }
+
+    /**
+     * Sanitize each setting field as needed
+     *
+     * @param array $input Contains all settings fields as array keys
+     */
+    public function wcmp_payment_ipay_payout_settings_sanitize($input) {
+        $new_input = array();
+        $hasError = false;
+        if (isset($input['key_id'])) {
+            $new_input['key_id'] = sanitize_text_field($input['key_id']);
+        }
+        if (isset($input['key_secret'])) {
+            $new_input['key_secret'] = sanitize_text_field($input['key_secret']);
+        }    
+        
+        if (isset($input['is_split'])) {
+            $new_input['is_split'] = sanitize_text_field($input['is_split']);
+        }
+
+        if (!$hasError) {
+            add_settings_error(
+                    "wcmp_{$this->tab}_{$this->subsection}_settings_name",
+                    esc_attr("wcmp_{$this->tab}_{$this->subsection}_settings_admin_updated"),
+                    __('iPay Payout Settings Updated', 'wcmp-ipay-checkout-gateway'),
+                    'updated'
+            );
+        }
+        return apply_filters("settings_{$this->tab}_{$this->subsection}_tab_new_input", $new_input, $input);
+    }
+}
