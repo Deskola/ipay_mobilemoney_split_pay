@@ -32,10 +32,50 @@
 
 
 
-==== PENDING ISSUES =====
-1) The Order status on the Vendor dashboard are still not updating to reflect stages of payment. 
-2) There are Order information that are not being stored or retrieved properly.
-3) iPay Pesalink is still under development
+== IMPORTANT NOTE ==
+1) The Order status as per the WCMP developers should be changes manually on the Admin/Vendor dashobaird side. However, they have also provided some code that can be added to the Theme to chnage the status of Suborder(Orders in the Vendors dashbaord) to be same as the parent Order(Order in the Woocommerce Dashboard).
+
+add_action( 'woocommerce_order_status_completed', 'wcmp_order_status_completed' );
+function wcmp_order_status_completed( $order_id ) {
+ global $WCMp;
+ $suborder_details = get_wcmp_suborders($order_id);
+ foreach ($suborder_details as $key => $value) {
+     $suborder_fetch = array(
+         'ID'           => $value->get_id(),
+         'post_status'   => 'wc-completed',
+     );
+     wp_update_post( $suborder_fetch );
+ }
+}
+
+//Auto complete sub orders to cancelled
+add_action( 'woocommerce_order_status_cancelled', 'wcmp_suborder_status_change_to_cancel' );
+function wcmp_suborder_status_change_to_cancel( $order_id ) {
+   global $WCMp;
+   $suborder_details = get_wcmp_suborders($order_id);
+   foreach ($suborder_details as $key => $value) {
+       $suborder_fetch = array(
+           'ID'           => $value->get_id(),
+           'post_status'   => 'wc-cancelled',
+       );
+       wp_update_post( $suborder_fetch );
+   }
+}
+
+//Auto complete sub orders to processing
+add_action( 'woocommerce_order_status_processing', 'wcmp_suborder_status_change_to_processing' );
+function wcmp_suborder_status_change_to_processing( $order_id ) {
+   global $WCMp;
+   $suborder_details = get_wcmp_suborders($order_id);
+   foreach ($suborder_details as $key => $value) {
+       $suborder_fetch = array(
+           'ID'           => $value->get_id(),
+           'post_status'   => 'wc-processing',
+       );
+       wp_update_post( $suborder_fetch );
+   }
+}
+
 
 
 
